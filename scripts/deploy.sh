@@ -109,6 +109,15 @@ cleanup_old_services() {
     # 3. Clean up obsolete system-level LaunchDaemons from the repository if they were copied on host
     rm -f "$REPO_DIR/com.citadel.voice.plist"
     rm -f "$REPO_DIR/com.citadel.whisper.plist"
+
+    # 4. Copy VAD model locally from old voice directory if available
+    OLD_VAD="/Users/homelab/voice/src/assets/silero_vad_v6.onnx"
+    NEW_VAD_DIR="$REPO_DIR/src/assets"
+    mkdir -p "$NEW_VAD_DIR"
+    if [ ! -f "$NEW_VAD_DIR/silero_vad_v6.onnx" ] && [ -f "$OLD_VAD" ]; then
+        echo "Copying local Silero VAD model from obsolete voice directory..."
+        cp "$OLD_VAD" "$NEW_VAD_DIR/silero_vad_v6.onnx"
+    fi
 }
 
 # 5. Install LaunchAgent plist
