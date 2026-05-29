@@ -53,6 +53,13 @@ rollback() {
 # 3. Setup / Update Python virtual environment
 setup_env() {
     echo "Configuring Python virtual environment..."
+    if [ -d "$VENV_DIR" ]; then
+        if ! "$VENV_DIR/bin/python" -c "import sys" >/dev/null 2>&1; then
+            echo "Virtual environment is broken (likely due to Python/Brew updates). Recreating..."
+            rm -rf "$VENV_DIR"
+        fi
+    fi
+
     if [ ! -d "$VENV_DIR" ]; then
         echo "Creating virtual environment at $VENV_DIR..."
         /opt/homebrew/bin/python3.12 -m venv "$VENV_DIR"
@@ -61,12 +68,12 @@ setup_env() {
     source "$VENV_DIR/bin/activate"
 
     echo "Installing requirements..."
-    pip install -U pip setuptools
-    pip install -r requirements.txt
+    python -m pip install -U pip setuptools
+    python -m pip install -r requirements.txt
 
     if [ -f "requirements-dev.txt" ]; then
         echo "Installing dev requirements for host testing..."
-        pip install -r requirements-dev.txt
+        python -m pip install -r requirements-dev.txt
     fi
 }
 
