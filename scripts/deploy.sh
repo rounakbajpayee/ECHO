@@ -78,7 +78,39 @@ setup_env() {
     fi
 }
 
-# 4. Install LaunchAgent plist
+# 4. Clean up old services and plists (obsolete voice/whisper plists)
+cleanup_old_services() {
+    echo "Cleaning up obsolete plists and services..."
+    USER_ID=$(id -u)
+
+    # 1. Unload and delete old com.citadel.voice LaunchAgent
+    VOICE_TARGET="/Users/homelab/Library/LaunchAgents/com.citadel.voice.plist"
+    if launchctl list | grep -q "com.citadel.voice"; then
+        echo "Stopping obsolete com.citadel.voice service..."
+        launchctl bootout gui/"$USER_ID" "$VOICE_TARGET" || launchctl bootout gui/"$USER_ID"/com.citadel.voice || true
+    fi
+    if [ -f "$VOICE_TARGET" ]; then
+        echo "Removing obsolete com.citadel.voice.plist from LaunchAgents..."
+        rm -f "$VOICE_TARGET"
+    fi
+
+    # 2. Unload and delete old com.citadel.whisper LaunchAgent
+    WHISPER_TARGET="/Users/homelab/Library/LaunchAgents/com.citadel.whisper.plist"
+    if launchctl list | grep -q "com.citadel.whisper"; then
+        echo "Stopping obsolete com.citadel.whisper service..."
+        launchctl bootout gui/"$USER_ID" "$WHISPER_TARGET" || launchctl bootout gui/"$USER_ID"/com.citadel.whisper || true
+    fi
+    if [ -f "$WHISPER_TARGET" ]; then
+        echo "Removing obsolete com.citadel.whisper.plist from LaunchAgents..."
+        rm -f "$WHISPER_TARGET"
+    fi
+
+    # 3. Clean up obsolete system-level LaunchDaemons from the repository if they were copied on host
+    rm -f "$REPO_DIR/com.citadel.voice.plist"
+    rm -f "$REPO_DIR/com.citadel.whisper.plist"
+}
+
+# 5. Install LaunchAgent plist
 install_plist() {
     echo "Checking LaunchAgent configuration..."
 
@@ -122,6 +154,7 @@ restart_service() {
 trap 'rollback' ERR # Trap errors to trigger rollback
 
 setup_env
+cleanup_old_services
 install_plist
 restart_service
 
