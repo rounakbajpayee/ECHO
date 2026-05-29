@@ -30,11 +30,13 @@ jobs:
           ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
 
           ssh -i ~/.ssh/id_deploy ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
-            "cd /Users/${{ secrets.DEPLOY_USER }}/echo && \
-             git remote set-url origin git@github.com:rounakbajpayee/ECHO.git && \
-             git fetch origin && \
-             git reset --hard origin/main && \
-             bash scripts/deploy.sh"
+            "echo '=== echo.err ===' && cat /Users/${{ secrets.DEPLOY_USER }}/echo/logs/echo.err || true && \
+             echo '=== echo.log ===' && cat /Users/${{ secrets.DEPLOY_USER }}/echo/logs/echo.log || true && \
+             echo '=== Python/Uvicorn Check ===' && \
+             /Users/${{ secrets.DEPLOY_USER }}/echo/.venv/bin/python --version || true && \
+             /Users/${{ secrets.DEPLOY_USER }}/echo/.venv/bin/uvicorn --version || true && \
+             echo '=== Directory Check ===' && \
+             ls -la /Users/${{ secrets.DEPLOY_USER }}/echo/logs/ || true"
 
       - name: Report deployed commit
         run: echo "Deployed ${{ github.sha }} to ${{ secrets.DEPLOY_HOST }}"
