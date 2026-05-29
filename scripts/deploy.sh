@@ -84,17 +84,6 @@ cleanup_old_services() {
     echo "Cleaning up obsolete plists and services..."
     USER_ID=$(id -u)
 
-    # 1. Unload and delete old com.citadel.voice LaunchAgent
-    VOICE_TARGET="/Users/homelab/Library/LaunchAgents/com.citadel.voice.plist"
-    if launchctl list | grep -q "com.citadel.voice"; then
-        echo "Stopping obsolete com.citadel.voice service..."
-        launchctl bootout gui/"$USER_ID" "$VOICE_TARGET" || launchctl bootout gui/"$USER_ID"/com.citadel.voice || true
-    fi
-    if [ -f "$VOICE_TARGET" ]; then
-        echo "Removing obsolete com.citadel.voice.plist from LaunchAgents..."
-        rm -f "$VOICE_TARGET"
-    fi
-
     # 2. Unload and delete old com.citadel.whisper LaunchAgent
     WHISPER_TARGET="/Users/homelab/Library/LaunchAgents/com.citadel.whisper.plist"
     if launchctl list | grep -q "com.citadel.whisper"; then
