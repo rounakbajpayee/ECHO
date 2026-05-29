@@ -33,19 +33,27 @@ cmake --build build --config Release -j$(nproc)
 
 ## 2. Install ECHO
 
+> [!IMPORTANT]
+> **Git Authentication on Host:**
+> To ensure that the non-interactive CD pipeline can pull code successfully without getting blocked by username/password prompts:
+> - **Option A (Recommended):** Clone the repository using the **SSH URL** (e.g. `git@github.com:rounakbajpayee/ECHO.git`), which uses SSH keys to authenticate automatically.
+> - **Option B:** If using **HTTPS**, configure Git to store credentials before cloning:
+>   `git config --global credential.helper store`
+>   Then run a manual `git fetch` once and enter your GitHub username and Personal Access Token (PAT). Git will cache it permanently.
+
 ```bash
-# Clone repo
-git clone git@github.com:citadel/echo.git /Users/homelab/echo
+# 1. Create logs directory
+mkdir -p /Users/homelab/echo/logs
+
+# 2. Clone the repository (Use SSH URL or configure credential helper first)
+git clone git@github.com:rounakbajpayee/ECHO.git /Users/homelab/echo
 cd /Users/homelab/echo
 
-# Create virtual environment
+# 3. Create virtual environment
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 
-# Create logs directory
-mkdir -p logs
-
-# Copy and configure
+# 4. Copy and configure
 cp config.json.example src/config.json
 ```
 
