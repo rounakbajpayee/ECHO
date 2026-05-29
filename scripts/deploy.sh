@@ -17,6 +17,7 @@ fi
 ECHO_ROOT="/Users/homelab/echo"
 REPO_DIR="$ECHO_ROOT"
 VENV_DIR="$ECHO_ROOT/.venv"
+VENV_PYTHON="$VENV_DIR/bin/python"
 PLIST_NAME="com.citadel.echo.plist"
 PLIST_SOURCE="$REPO_DIR/$PLIST_NAME"
 PLIST_TARGET="/Users/homelab/Library/LaunchAgents/$PLIST_NAME"
@@ -65,15 +66,15 @@ setup_env() {
         /opt/homebrew/bin/python3.12 -m venv "$VENV_DIR"
     fi
 
-    source "$VENV_DIR/bin/activate"
+    # Use the virtual environment's python directly to avoid PATH activation issues in non-interactive SSH
 
     echo "Installing requirements..."
-    python -m pip install -U pip setuptools
-    python -m pip install -r requirements.txt
+    "$VENV_PYTHON" -m pip install -U pip setuptools
+    "$VENV_PYTHON" -m pip install -r requirements.txt
 
     if [ -f "requirements-dev.txt" ]; then
         echo "Installing dev requirements for host testing..."
-        python -m pip install -r requirements-dev.txt
+        "$VENV_PYTHON" -m pip install -r requirements-dev.txt
     fi
 }
 
@@ -127,7 +128,7 @@ restart_service
 # 6. Post-deploy health check
 echo "Running post-deployment health check..."
 HEALTH=$(curl -sf http://127.0.0.1:8001/health)
-STATUS=$(echo "$HEALTH" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('status',''))")
+STATUS=$(echo "$HEALTH" | "$VENV_PYTHON" -c "import sys,json; d=json.load(sys.stdin); print(d.get('status',''))")
 if [ "$STATUS" != "ok" ]; then
     echo "ERROR: Health check failed — response: $HEALTH"
     false # Trigger ERR trap → rollback
