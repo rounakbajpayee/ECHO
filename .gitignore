@@ -1,3 +1,16 @@
-__pycache__/
+# Application config & state
+config.json
 logs/
+*.onnx
+
+# Large binaries & media
+*.wav
+*.mp3
+
+# Python build & virtual env
 .venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.env
+.env.*.local

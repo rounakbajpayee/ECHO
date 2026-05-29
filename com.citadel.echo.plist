@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.citadel.echo</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/homelab/echo/.venv/bin/uvicorn</string>
+        <string>main:app</string>
+        <string>--host</string>
+        <string>0.0.0.0</string>
+        <string>--port</string>
+        <string>8001</string>
+        <string>--log-level</string>
+        <string>info</string>
+    </array>
+
+    <!-- Run from src/ so relative paths in config_defaults.json resolve correctly -->
+    <key>WorkingDirectory</key>
+    <string>/Users/homelab/echo/src</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <key>HOME</key>
+        <string>/Users/homelab</string>
+        <!-- Override config defaults via env vars (matches load_config() env override logic) -->
+        <!-- SPAWN_WHISPER_SERVER: set to "true" to have ECHO manage whisper-server lifecycle -->
+        <key>SPAWN_WHISPER_SERVER</key>
+        <string>true</string>
+        <key>WHISPER_BACKEND_URL</key>
+        <string>http://127.0.0.1:8003</string>
+        <key>BACKEND_TIMEOUT</key>
+        <string>30.0</string>
+        <key>HEAD_TRIM_MS</key>
+        <string>50</string>
+        <!-- VOICE_BEARER_TOKEN: uncomment and set to enable auth -->
+        <!-- <key>VOICE_BEARER_TOKEN</key> -->
+        <!-- <string>your-secure-token-here</string> -->
+    </dict>
+
+    <key>UserName</key>
+    <string>homelab</string>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/homelab/echo/logs/echo.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/homelab/echo/logs/echo.err</string>
+
+    <!-- Throttle restart interval to avoid rapid crash loops -->
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+</dict>
+</plist>
