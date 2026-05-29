@@ -1,0 +1,22 @@
+{
+  "bearer_token": "YOUR_BEARER_TOKEN_HERE",
+  "whisper_backend_url": "http://127.0.0.1:8003",
+  "head_trim_ms": 50,
+  "backend_timeout": 30.0,
+  "vad_enabled": true,
+  "vad_threshold": 0.5,
+  "vad_min_speech_duration_ms": 200,
+  "vad_chunk_ms": 96,
+  "vad_model_path": "src/assets/silero_vad_v6.onnx",
+  "spawn_whisper_server": true,
+  "whisper_server_path": "/Users/homelab/whisper.cpp/build/bin/whisper-server",
+  "whisper_model_path": "/Users/homelab/whisper.cpp/models/ggml-large-v3-turbo.bin",
+  "whisper_threads": 4,
+  "whisper_port": 8003,
+  "whisper_args": [
+    "--beam-size", "5",
+    "--best-of", "5",
+    "--no-speech-thold", "0.6",
+    "--entropy-thold", "4.0"
+  ]
+}

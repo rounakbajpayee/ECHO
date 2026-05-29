@@ -1,0 +1,39 @@
+name: CD (Deploy to Host)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Mac via Tailscale SSH
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v2
+        with:
+          oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TAILSCALE_OAUTH_CLIENT_SECRET }}
+          tags: tag:deployment
+
+      - name: SSH and Execute Deploy on Mac
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+
+          # Add host to known_hosts to prevent interactive prompt
+          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+
+          ssh -i ~/.ssh/id_deploy ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+            "cd /Users/${{ secrets.DEPLOY_USER }}/echo && \
+             git fetch origin && \
+             git reset --hard origin/main && \
+             bash scripts/deploy.sh"
+
+      - name: Report deployed commit
+        run: echo "Deployed ${{ github.sha }} to ${{ secrets.DEPLOY_HOST }}"
