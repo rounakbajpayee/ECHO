@@ -55,8 +55,9 @@ rollback() {
 setup_env() {
     echo "Configuring Python virtual environment..."
     if [ -d "$VENV_DIR" ]; then
-        if ! "$VENV_DIR/bin/python" -c "import sys" >/dev/null 2>&1; then
-            echo "Virtual environment is broken (likely due to Python/Brew updates). Recreating..."
+        # Check if the python interpreter works and if uvicorn runs without shebang errors (e.g. from venv relocation)
+        if ! "$VENV_PYTHON" -c "import sys" >/dev/null 2>&1 || ! "$VENV_DIR/bin/uvicorn" --version >/dev/null 2>&1; then
+            echo "Virtual environment or uvicorn interpreter is broken (likely due to relocation or updates). Recreating..."
             rm -rf "$VENV_DIR"
         fi
     fi
