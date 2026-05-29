@@ -1,8 +1,9 @@
-name: Deploy
+name: CD (Deploy to Host)
 
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -15,52 +16,24 @@ jobs:
       - name: Connect to Tailscale
         uses: tailscale/github-action@v2
         with:
-          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
-          tags: tag:ci
+          oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TAILSCALE_OAUTH_CLIENT_SECRET }}
+          tags: tag:deployment
 
-      - name: Deploy to homelab Mac
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}   # Tailscale IP of the Mac
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}   # SSH user (homelab)
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}   # e.g. /Users/homelab/echo
+      - name: SSH and Execute Deploy on Mac
         run: |
-          ssh -o StrictHostKeyChecking=no "$DEPLOY_USER@$DEPLOY_HOST" bash << 'ENDSSH'
-            set -e
-            cd "$DEPLOY_PATH"
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
 
-            # Store current commit for rollback trap
-            PREV_COMMIT=$(git rev-parse HEAD)
-            echo "Current commit: $PREV_COMMIT"
+          # Add host to known_hosts to prevent interactive prompt
+          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
 
-            # Self-healing rollback: if any post-deploy step fails, revert and restart
-            trap '
-              echo "Deploy failed — rolling back to $PREV_COMMIT"
-              git reset --hard "$PREV_COMMIT"
-              .venv/bin/pip install -q -r requirements.txt
-              launchctl unload ~/Library/LaunchAgents/com.citadel.echo.plist 2>/dev/null || true
-              launchctl load ~/Library/LaunchAgents/com.citadel.echo.plist
-              echo "Rollback complete"
-              exit 1
-            ' ERR
-
-            # Pull latest code
-            git pull origin main
-
-            # Update dependencies
-            .venv/bin/pip install -q -r requirements.txt
-
-            # Restart the LaunchAgent (no sudo — LaunchAgent runs as current user)
-            launchctl unload ~/Library/LaunchAgents/com.citadel.echo.plist 2>/dev/null || true
-            launchctl load ~/Library/LaunchAgents/com.citadel.echo.plist
-
-            # Wait for service to come up
-            sleep 3
-
-            # Post-deploy health check
-            HEALTH=$(curl -sf http://127.0.0.1:8001/health | python3 -c "import sys,json; d=json.load(sys.stdin); sys.exit(0 if d.get('status')=='ok' else 1)")
-            echo "Health check passed"
-          ENDSSH
+          ssh -i ~/.ssh/id_deploy ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+            "cd /Users/${{ secrets.DEPLOY_USER }}/echo && \
+             git fetch origin && \
+             git reset --hard origin/main && \
+             bash scripts/deploy.sh"
 
       - name: Report deployed commit
         run: echo "Deployed ${{ github.sha }} to ${{ secrets.DEPLOY_HOST }}"
