@@ -53,14 +53,15 @@ tail -n 100 /Users/homelab/echo/logs/echo.log
 
 ```bash
 curl http://localhost:8001/health
-# Expected: {"status":"ok","backend":"ok","vad":"enabled"}
+# Expected: {"status":"ok","backend":"ok","vad":"disabled"}
 
 # If backend is "unreachable":
 # → whisper-server failed to start (check echo.err for binary/model path errors)
 # → Wrong whisper_backend_url in config
 
-# If vad is "disabled":
-# → vad_model_path is wrong or model failed to download
+# Note: vad shows "disabled" by default as configured in src/config_defaults.json.
+# If you enable VAD in config, and it shows "disabled":
+# → vad_model_path is wrong or model failed to download (check network connection)
 # → Check echo.err for "Failed to load Silero VAD"
 ```
 
@@ -103,7 +104,7 @@ ECHO auto-downloads the Silero VAD model on first startup if it's missing. If th
 ```bash
 # Download manually:
 curl -L -o /Users/homelab/echo/src/assets/silero_vad_v6.onnx \
-  https://raw.githubusercontent.com/snakers4/silero-vad/master/files/silero_vad.onnx
+  https://raw.githubusercontent.com/snakers4/silero-vad/master/src/silero_vad/data/silero_vad.onnx
 ```
 
 Then restart the service.

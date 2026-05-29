@@ -13,9 +13,10 @@ Client (APRIL / any OpenAI-compat app)
 │  ┌──────────────────────────────┐   │
 │  │  Auth Check                  │   │
 │  │  Head Trim (configurable ms) │   │
-│  │  Silero VAD (ONNX, Python)   │   │  ◄── if speech < min_duration_ms → return {"text":""}
+│  │  Silero VAD (Disabled by     │   │  ◄── Optional; if enabled & speech < min_ms → return {"text":""}
+│  │          default)            │   │
 │  └──────────────────────────────┘   │
-│        │ audio (if speech detected) │
+│        │ audio                      │
 │        ▼                            │
 │  httpx async proxy                  │
 └─────────────────────────────────────┘
@@ -61,9 +62,8 @@ ECHO: hallucination filter → return to client
 1. Client uploads WAV audio
 2. ECHO checks Bearer token (if configured)
 3. WAV head is trimmed (`head_trim_ms` from config)
-4. Silero VAD runs on 16kHz float32 audio in chunks
-5. If total speech < `vad_min_speech_duration_ms` → return `{"text": ""}` immediately (no C++ call)
-6. Otherwise, audio is proxied to `whisper-server`
+4. If VAD is enabled (`vad_enabled: true`), Silero VAD runs on 16kHz float32 audio in chunks. If total speech < `vad_min_speech_duration_ms` → return `{"text": ""}` immediately.
+5. Otherwise (or if VAD is disabled, which is the default), audio is proxied directly to `whisper-server`.
 7. Response text is checked against the hallucination blocklist
 8. Cleaned text returned to client
 

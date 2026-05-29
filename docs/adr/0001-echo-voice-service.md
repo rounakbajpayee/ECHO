@@ -72,3 +72,20 @@ Implement an explicit blocklist filter on the transcription return path. If the 
 
 **Reasoning:**
 Simple, low-overhead string comparison on the return path prevents hallucinated filler text from contaminating the downstream assistant's memory or planning system.
+
+---
+
+## ADR-005 — Disable VAD by Default and Fix Download URL
+
+**Status:** Accepted
+
+**Context:**
+The upstream repository for Silero VAD restructured its branch directory paths, breaking the hardcoded URL used to download the ONNX model and returning HTTP 404. Concurrently, VAD threshold tuning causes issues with short or quiet audio inputs, prompting the need to bypass speech pre-processing for normal assistant requests.
+
+**Decision:**
+- Correct the download URL in `src/main.py` to point to the new location `https://raw.githubusercontent.com/snakers4/silero-vad/master/src/silero_vad/data/silero_vad.onnx`.
+- Set `"vad_enabled"` to `false` in `src/config_defaults.json` and `config.json.example`.
+
+**Reasoning:**
+- Bypassing VAD by default ensures standard transcription requests route directly to the Whisper backend without early termination.
+- Keeping the model download URL corrected ensures that when wake-word detection or VAD features are turned on in the future, the ONNX model files will download automatically and correctly.
