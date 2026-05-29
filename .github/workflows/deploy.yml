@@ -31,6 +31,7 @@ jobs:
 
           ssh -i ~/.ssh/id_deploy ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
             "cd /Users/${{ secrets.DEPLOY_USER }}/echo && \
+             git remote set-url origin git@github.com:rounakbajpayee/ECHO.git && \
              git fetch origin && \
              git reset --hard origin/main && \
              bash scripts/deploy.sh"
