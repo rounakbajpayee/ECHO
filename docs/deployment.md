@@ -57,18 +57,19 @@ Edit `src/config.json` and set:
 
 ---
 
-## 3. Configure launchd
+## 3. Configure launchd (LaunchAgent)
+
+ECHO runs as a **LaunchAgent** — it lives in `~/Library/LaunchAgents/` and runs under your user session. No `sudo` required.
 
 ```bash
-# Copy the plist
-sudo cp /Users/homelab/echo/com.citadel.echo.plist /Library/LaunchDaemons/
+# Create LaunchAgents dir if it doesn't exist
+mkdir -p ~/Library/LaunchAgents
 
-# Set correct permissions
-sudo chown root:wheel /Library/LaunchDaemons/com.citadel.echo.plist
-sudo chmod 644 /Library/LaunchDaemons/com.citadel.echo.plist
+# Copy the plist
+cp /Users/homelab/echo/com.citadel.echo.plist ~/Library/LaunchAgents/
 
 # Load and start
-sudo launchctl load /Library/LaunchDaemons/com.citadel.echo.plist
+launchctl load ~/Library/LaunchAgents/com.citadel.echo.plist
 ```
 
 ---

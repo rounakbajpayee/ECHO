@@ -8,7 +8,7 @@ Operational procedures for managing the ECHO service in production.
 
 ```bash
 # Check if launchd service is loaded and running
-sudo launchctl list | grep echo
+launchctl list | grep echo
 
 # Expected output:
 # <PID>   0    com.citadel.echo
@@ -22,14 +22,14 @@ sudo launchctl list | grep echo
 
 ```bash
 # Load and start
-sudo launchctl load /Library/LaunchDaemons/com.citadel.echo.plist
+launchctl load ~/Library/LaunchAgents/com.citadel.echo.plist
 
 # Stop and unload
-sudo launchctl unload /Library/LaunchDaemons/com.citadel.echo.plist
+launchctl unload ~/Library/LaunchAgents/com.citadel.echo.plist
 
 # Restart (unload then reload)
-sudo launchctl unload /Library/LaunchDaemons/com.citadel.echo.plist
-sudo launchctl load   /Library/LaunchDaemons/com.citadel.echo.plist
+launchctl unload ~/Library/LaunchAgents/com.citadel.echo.plist
+launchctl load   ~/Library/LaunchAgents/com.citadel.echo.plist
 ```
 
 ---
@@ -113,7 +113,7 @@ Then restart the service.
 ## Migrating from Legacy Setup (com.citadel.voice + com.citadel.whisper)
 
 ```bash
-# 1. Unload old services
+# 1. Unload old services (these were LaunchDaemons, so they need sudo)
 sudo launchctl unload /Library/LaunchDaemons/com.citadel.voice.plist
 sudo launchctl unload /Library/LaunchDaemons/com.citadel.whisper.plist
 
@@ -121,9 +121,9 @@ sudo launchctl unload /Library/LaunchDaemons/com.citadel.whisper.plist
 sudo rm /Library/LaunchDaemons/com.citadel.voice.plist
 sudo rm /Library/LaunchDaemons/com.citadel.whisper.plist
 
-# 3. Install new unified plist
-sudo cp /Users/homelab/echo/com.citadel.echo.plist /Library/LaunchDaemons/
-sudo launchctl load /Library/LaunchDaemons/com.citadel.echo.plist
+# 3. Install new unified plist as a LaunchAgent (no sudo required)
+cp /Users/homelab/echo/com.citadel.echo.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/com.citadel.echo.plist
 ```
 
 ---
@@ -139,7 +139,7 @@ git pull origin main
 # Install any new dependencies
 .venv/bin/pip install -r requirements.txt
 
-# Restart service
-sudo launchctl unload /Library/LaunchDaemons/com.citadel.echo.plist
-sudo launchctl load   /Library/LaunchDaemons/com.citadel.echo.plist
+# Restart service (no sudo needed for LaunchAgents)
+launchctl unload ~/Library/LaunchAgents/com.citadel.echo.plist
+launchctl load   ~/Library/LaunchAgents/com.citadel.echo.plist
 ```

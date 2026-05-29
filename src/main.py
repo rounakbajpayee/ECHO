@@ -8,6 +8,7 @@ from __future__ import annotations
 import io
 import os
 import wave
+import hmac
 import logging
 import asyncio
 import json
@@ -312,7 +313,7 @@ def _check_auth(request: Request, bearer_token: str) -> None:
     if not bearer_token:
         return
     auth = request.headers.get("Authorization", "")
-    if not auth.startswith("Bearer ") or auth[7:] != bearer_token:
+    if not auth.startswith("Bearer ") or not hmac.compare_digest(auth[7:], bearer_token):
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 
