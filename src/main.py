@@ -106,7 +106,7 @@ def ensure_vad_model(model_path: str):
     log.info("Silero VAD model not found at %s. Attempting to download...", model_path)
     path.parent.mkdir(parents=True, exist_ok=True)
 
-    url = "https://raw.githubusercontent.com/snakers4/silero-vad/master/files/silero_vad.onnx"
+    url = "https://raw.githubusercontent.com/snakers4/silero-vad/master/src/silero_vad/data/silero_vad.onnx"
     try:
         with httpx.Client(follow_redirects=True) as client:
             r = client.get(url, timeout=30.0)
