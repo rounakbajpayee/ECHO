@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.citadel.whisper</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/homelab/whisper.cpp/build/bin/whisper-server</string>
+        <string>--model</string>
+        <string>/Users/homelab/whisper.cpp/models/ggml-large-v3-turbo.bin</string>
+        <string>--host</string>
+        <string>0.0.0.0</string>
+        <string>--port</string>
+        <string>8003</string>
+        <string>--inference-path</string>
+        <string>/v1/audio/transcriptions</string>
+        <string>--convert</string>
+        <string>--threads</string>
+        <string>4</string>
+        <string>--language</string>
+        <string>en</string>
+        <string>--beam-size</string>
+        <string>5</string>
+        <string>--best-of</string>
+        <string>5</string>
+        <string>--no-speech-thold</string>
+        <string>0.6</string>
+        <string>--entropy-thold</string>
+        <string>4.0</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/homelab/whisper.cpp</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <key>HOME</key>
+        <string>/Users/homelab</string>
+    </dict>
+
+    <key>UserName</key>
+    <string>homelab</string>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/homelab/voice/logs/whisper.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/homelab/voice/logs/whisper.err</string>
+
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+</dict>
+</plist>
+
