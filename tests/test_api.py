@@ -99,15 +99,21 @@ async def test_transcribe_vad_no_speech():
         mock_prob.item.return_value = 0.05  # below VAD_THRESHOLD
         mock_run.return_value = [mock_prob, MagicMock(), MagicMock(), MagicMock()]
 
-        # Initialize VAD with current mocked InferenceSession
-        main.init_vad(main.CONFIG)
-
-        audio = create_dummy_wav()
-        response = client.post(
-            "/v1/audio/transcriptions", files={"file": ("audio.wav", audio, "audio/wav")}, data={"model": "whisper-1"}
-        )
-        assert response.status_code == 200
-        assert response.json() == {"text": ""}
+        # Initialize VAD with current mocked InferenceSession and force enable VAD
+        original_vad = main.CONFIG.get("vad_enabled", True)
+        main.CONFIG["vad_enabled"] = True
+        try:
+            main.init_vad(main.CONFIG)
+            audio = create_dummy_wav()
+            response = client.post(
+                "/v1/audio/transcriptions", files={"file": ("audio.wav", audio, "audio/wav")}, data={"model": "whisper-1"}
+            )
+            assert response.status_code == 200
+            assert response.json() == {"text": ""}
+        finally:
+            main.CONFIG["vad_enabled"] = original_vad
+            if not original_vad:
+                main._vad = None
 
 
 @pytest.mark.anyio
@@ -124,14 +130,20 @@ async def test_transcribe_speech_forwarded():
         mock_response.json.return_value = {"text": "hello senior dev"}
         mock_post.return_value = mock_response
 
-        main.init_vad(main.CONFIG)
-
-        audio = create_dummy_wav()
-        response = client.post(
-            "/v1/audio/transcriptions", files={"file": ("audio.wav", audio, "audio/wav")}, data={"model": "whisper-1"}
-        )
-        assert response.status_code == 200
-        assert response.json() == {"text": "hello senior dev"}
+        original_vad = main.CONFIG.get("vad_enabled", True)
+        main.CONFIG["vad_enabled"] = True
+        try:
+            main.init_vad(main.CONFIG)
+            audio = create_dummy_wav()
+            response = client.post(
+                "/v1/audio/transcriptions", files={"file": ("audio.wav", audio, "audio/wav")}, data={"model": "whisper-1"}
+            )
+            assert response.status_code == 200
+            assert response.json() == {"text": "hello senior dev"}
+        finally:
+            main.CONFIG["vad_enabled"] = original_vad
+            if not original_vad:
+                main._vad = None
 
 
 @pytest.mark.anyio
@@ -147,11 +159,17 @@ async def test_hallucination_blocking():
         mock_response.json.return_value = {"text": "Thanks for watching."}
         mock_post.return_value = mock_response
 
-        main.init_vad(main.CONFIG)
-
-        audio = create_dummy_wav()
-        response = client.post(
-            "/v1/audio/transcriptions", files={"file": ("audio.wav", audio, "audio/wav")}, data={"model": "whisper-1"}
-        )
-        assert response.status_code == 200
-        assert response.json() == {"text": ""}
+        original_vad = main.CONFIG.get("vad_enabled", True)
+        main.CONFIG["vad_enabled"] = True
+        try:
+            main.init_vad(main.CONFIG)
+            audio = create_dummy_wav()
+            response = client.post(
+                "/v1/audio/transcriptions", files={"file": ("audio.wav", audio, "audio/wav")}, data={"model": "whisper-1"}
+            )
+            assert response.status_code == 200
+            assert response.json() == {"text": ""}
+        finally:
+            main.CONFIG["vad_enabled"] = original_vad
+            if not original_vad:
+                main._vad = None

@@ -3,7 +3,7 @@
   "whisper_backend_url": "http://127.0.0.1:8003",
   "head_trim_ms": 50,
   "backend_timeout": 30.0,
-  "vad_enabled": true,
+  "vad_enabled": false,
   "vad_threshold": 0.5,
   "vad_min_speech_duration_ms": 200,
   "vad_chunk_ms": 96,
