@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  echo-api:
+    build: .
+    ports:
+      - "8001:8001"
+    environment:
+      # We do not spawn the whisper server in Docker, as it requires bare-metal (e.g. Apple Silicon Metal)
+      - SPAWN_WHISPER_SERVER=false
+      # Point to the bare-metal whisper server running on the host
+      - WHISPER_BACKEND_URL=http://host.docker.internal:8003
+      - VAD_ENABLED=true
+      - HEAD_TRIM_MS=50
+      # Optional: set a bearer token for the API
+      # - VOICE_BEARER_TOKEN=your_token_here
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped

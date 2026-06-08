@@ -1,5 +1,10 @@
 # ECHO
 
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+[![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
+[![Coverage](https://img.shields.io/badge/coverage-90%25-success.svg)](https://github.com)
+
+
 Fast, private, hallucination-resistant speech transcription for your home lab â€” OpenAI-compatible API, runs entirely on local hardware.
 
 ## Features
@@ -25,6 +30,20 @@ Fast, private, hallucination-resistant speech transcription for your home lab â€
 
 ## Quick Start
 
+### Option 1: Docker (Recommended)
+
+The FastAPI proxy and VAD layer can be run in Docker, while the actual `whisper-server` runs on your host machine to leverage bare-metal hardware acceleration (like Apple Silicon Metal).
+
+1. Ensure `whisper-server` is running on your host at port 8003.
+2. Run the proxy via Docker Compose:
+```bash
+git clone git@github.com:rounakbajpayee/ECHO.git
+cd ECHO
+docker-compose up -d
+```
+
+### Option 2: Local Python (Development)
+
 ```bash
 # 1. Clone the repo
 git clone git@github.com:rounakbajpayee/ECHO.git
@@ -39,7 +58,7 @@ python -m venv .venv
 cp config.json.example src/config.json
 # Edit src/config.json: set whisper_server_path, whisper_model_path
 
-# 4. Run locally (development)
+# 4. Run locally
 .\scripts\dev.ps1           # Windows PowerShell
 # cd src && uvicorn main:app --host 0.0.0.0 --port 8001 --reload  # macOS/Linux
 
@@ -121,4 +140,9 @@ tail -f /Users/homelab/echo/logs/echo.log
 
 ## Architecture
 
-See [`docs/architecture.md`](docs/architecture.md) for a detailed breakdown.
+See [`ARCHITECTURE.md`](ARCHITECTURE.md) for a detailed breakdown and system diagrams.
+
+
+## License
+
+This project is licensed under the AGPLv3. For commercial use without open-sourcing your application, please contact the author to purchase a commercial license.

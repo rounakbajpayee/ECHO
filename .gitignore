@@ -14,3 +14,8 @@ __pycache__/
 *.egg-info/
 .env
 .env.*.local
+
+.coverage
+.pytest_cache/
+.ruff_cache/
+*.jsonl
