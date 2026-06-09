@@ -1,24 +1,25 @@
 import io
 import os
 import wave
+from unittest.mock import MagicMock, patch
+
+import httpx
 import numpy as np
 import pytest
-from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
-import httpx
 
 import main
 from main import (
-    app,
+    SileroVAD,
+    _is_hallucination,
+    _run_vad_sync,
     _trim_wav_head,
     _wav_to_float32,
-    load_config,
+    app,
     ensure_vad_model,
-    lifespan,
-    SileroVAD,
-    _run_vad_sync,
     init_vad,
-    _is_hallucination,
+    lifespan,
+    load_config,
 )
 
 client = TestClient(app)
@@ -86,13 +87,8 @@ def test_trim_wav_head():
     trimmed = _trim_wav_head(audio, trim_ms=100)
     assert len(trimmed) < len(audio)
 
-    # zero trim
     assert _trim_wav_head(audio, 0) == audio
-
-    # trim larger than duration
     assert _trim_wav_head(audio, 1000) == audio
-
-    # invalid wav
     assert _trim_wav_head(b"not-a-wav", 100) == b"not-a-wav"
 
 
@@ -100,19 +96,15 @@ def test_wav_to_float32():
     audio = create_dummy_wav(duration_sec=0.2, sample_rate=16000)
     assert _wav_to_float32(audio).dtype == np.float32
 
-    # 32-bit width
     audio32 = create_dummy_wav(duration_sec=0.2, sampwidth=4)
     assert _wav_to_float32(audio32).dtype == np.float32
 
-    # Stereo
     audio_stereo = create_dummy_wav(duration_sec=0.2, n_channels=2)
     assert _wav_to_float32(audio_stereo).dtype == np.float32
 
-    # Wrong sample rate
     audio_44 = create_dummy_wav(duration_sec=0.2, sample_rate=44100)
     assert _wav_to_float32(audio_44) is None
 
-    # Invalid data
     assert _wav_to_float32(b"invalid") is None
 
 
@@ -125,7 +117,6 @@ async def test_health_check():
         resp = client.get("/health")
         assert resp.status_code == 200
 
-        # Test backend failure
         mock_get.side_effect = Exception("fail")
         resp2 = client.get("/health")
         assert resp2.status_code == 200
@@ -137,17 +128,14 @@ def test_transcribe_exceptions():
     audio = create_dummy_wav()
 
     with patch("main._client.post") as mock_post:
-        # Timeout
         mock_post.side_effect = httpx.TimeoutException("timeout")
         resp = client.post("/v1/audio/transcriptions", files={"file": ("a.wav", audio, "audio/wav")})
         assert resp.status_code == 504
 
-        # ConnectError
         mock_post.side_effect = httpx.ConnectError("connect")
         resp2 = client.post("/v1/audio/transcriptions", files={"file": ("a.wav", audio, "audio/wav")})
         assert resp2.status_code == 502
 
-        # Backend 500
         mock_post.side_effect = None
         mock_resp = MagicMock()
         mock_resp.status_code = 500
@@ -156,7 +144,6 @@ def test_transcribe_exceptions():
         resp3 = client.post("/v1/audio/transcriptions", files={"file": ("a.wav", audio, "audio/wav")})
         assert resp3.status_code == 500
 
-        # Empty file
         resp4 = client.post("/v1/audio/transcriptions", files={"file": ("a.wav", b"", "audio/wav")})
         assert resp4.status_code == 400
 
@@ -179,8 +166,6 @@ def test_silero_vad_mocked():
         patch("onnxruntime.InferenceSession") as mock_ort,
     ):
         mock_sess = MagicMock()
-
-        # Mock inputs and outputs
         inp = MagicMock()
         inp.name = "input"
         inp.shape = [1, 512]
@@ -194,12 +179,9 @@ def test_silero_vad_mocked():
         mock_prob_tensor = MagicMock()
         mock_prob_tensor.item.return_value = 0.8
         mock_sess.run.return_value = [mock_prob_tensor, np.zeros((2, 1, 64))]
-
         mock_ort.return_value = mock_sess
 
         vad = SileroVAD("dummy.onnx")
-
-        # Test get_speech_duration_ms
         audio = np.zeros(1024, dtype=np.float32)
         dur = vad.get_speech_duration_ms(audio, threshold=0.5)
         assert dur > 0
@@ -224,14 +206,12 @@ def test_init_vad_and_run_sync():
         mock_prob_tensor = MagicMock()
         mock_prob_tensor.item.return_value = 0.8
         mock_sess.run.return_value = [mock_prob_tensor]
-
         mock_ort.return_value = mock_sess
 
         init_vad(main.CONFIG)
         assert main._vad is not None
 
         audio_bytes = create_dummy_wav(0.1)
-        # Should detect speech
         detected, dur = _run_vad_sync(audio_bytes, 96, 0.5, 10)
         assert detected is True
 
@@ -255,7 +235,6 @@ def test_transcribe_vad_path():
         mock_sess.get_inputs.return_value = [inp]
         mock_sess.get_outputs.return_value = [out_prob]
 
-        # Simulate high probability -> speech detected
         mock_prob_tensor = MagicMock()
         mock_prob_tensor.item.return_value = 0.9
         mock_sess.run.return_value = [mock_prob_tensor]
@@ -273,12 +252,10 @@ def test_transcribe_vad_path():
         assert resp.status_code == 200
         assert resp.json()["text"] == "hello"
 
-        # Simulate hallucination blocking
         mock_response.json.return_value = {"text": "Thanks for watching."}
         resp = client.post("/v1/audio/transcriptions", files={"file": ("a.wav", audio, "audio/wav")})
         assert resp.json()["text"] == ""
 
-        # Simulate low probability -> no speech -> short circuit
         mock_prob_tensor.item.return_value = 0.1
         resp = client.post("/v1/audio/transcriptions", files={"file": ("a.wav", audio, "audio/wav")})
         assert resp.json()["text"] == ""
