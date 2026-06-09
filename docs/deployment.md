@@ -139,3 +139,21 @@ All config keys can be overridden via uppercase env vars. Key ones for the plist
 | `VAD_THRESHOLD` | `0.5` | Speech probability threshold (0–1) |
 | `VAD_MIN_SPEECH_DURATION_MS` | `200` | Minimum ms of speech to forward |
 | `VOICE_BEARER_TOKEN` | `""` | Bearer token for auth (legacy name) |
+
+---
+
+## 6. Rollback
+
+The deploy script automatically captures the previous commit SHA and backs up `com.citadel.echo.plist` before deploying. If the deployment or post-deploy health check fails, the script will automatically:
+1. Reset the code to the previous commit.
+2. Restore the previous `com.citadel.echo.plist`.
+3. Reload the LaunchAgent and restart the service.
+
+To rollback manually, you can reset the git branch and reload the plist:
+```bash
+git checkout <previous-commit>
+# If you need to restore the plist manually, copy it and reload
+cp /Users/homelab/echo/com.citadel.echo.plist ~/Library/LaunchAgents/
+launchctl unload ~/Library/LaunchAgents/com.citadel.echo.plist
+launchctl load ~/Library/LaunchAgents/com.citadel.echo.plist
+```
