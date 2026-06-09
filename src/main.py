@@ -478,7 +478,7 @@ async def transcribe(
         threshold = float(CONFIG.get("vad_threshold", 0.5))
         min_duration = int(CONFIG.get("vad_min_speech_duration_ms", 200))
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         speech_detected, speech_ms = await loop.run_in_executor(
             _vad_executor, _run_vad_sync, audio_bytes, chunk_ms, threshold, min_duration
         )
