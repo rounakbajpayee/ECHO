@@ -135,7 +135,7 @@ All config keys can be overridden via uppercase env vars. Key ones for the plist
 | `WHISPER_BACKEND_URL` | `http://127.0.0.1:8003` | URL of whisper-server |
 | `BACKEND_TIMEOUT` | `30.0` | Timeout in seconds for C++ requests |
 | `HEAD_TRIM_MS` | `50` | Milliseconds to trim from WAV head |
-| `VAD_ENABLED` | `true` | Enable/disable Silero VAD |
+| `VAD_ENABLED` | `false` | Enable/disable Silero VAD |
 | `VAD_THRESHOLD` | `0.5` | Speech probability threshold (0–1) |
 | `VAD_MIN_SPEECH_DURATION_MS` | `200` | Minimum ms of speech to forward |
 | `VOICE_BEARER_TOKEN` | `""` | Bearer token for auth (legacy name) |

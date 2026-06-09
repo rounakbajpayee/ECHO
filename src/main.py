@@ -214,6 +214,12 @@ def init_vad(config: dict) -> None:
     if bool(config.get("vad_enabled", True)):
         try:
             model_path = str(config.get("vad_model_path", "src/assets/silero_vad_v6.onnx"))
+            # Resolve to absolute path based on project root if relative
+            path_obj = Path(model_path)
+            if not path_obj.is_absolute():
+                project_root = Path(__file__).resolve().parent.parent
+                model_path = str(project_root / model_path)
+
             _vad = SileroVAD(model_path)
         except Exception as exc:
             log.error("Failed to load Silero VAD — VAD will be disabled: %s", exc)
