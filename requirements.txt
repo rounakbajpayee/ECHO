@@ -4,3 +4,6 @@ httpx>=0.24.0
 numpy>=1.22.0
 onnxruntime>=1.14.0
 python-multipart>=0.0.6
+opentelemetry-api
+opentelemetry-sdk
+opentelemetry-exporter-otlp
