@@ -49,6 +49,7 @@ tracer_provider.add_span_processor(BatchSpanProcessor(exporter))
 # Logging Setup
 # ---------------------------------------------------------------------------
 
+
 class OpenTelemetryFilter(logging.Filter):
     def filter(self, record):
         span = trace.get_current_span()
@@ -60,6 +61,7 @@ class OpenTelemetryFilter(logging.Filter):
             record.trace_id = ""
             record.span_id = ""
         return True
+
 
 logging.basicConfig(
     level=logging.INFO,
