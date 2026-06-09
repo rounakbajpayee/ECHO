@@ -1,24 +1,25 @@
 import io
 import os
 import wave
+from unittest.mock import MagicMock, patch
+
+import httpx
 import numpy as np
 import pytest
-from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
-import httpx
 
 import main
 from main import (
-    app,
+    SileroVAD,
+    _is_hallucination,
+    _run_vad_sync,
     _trim_wav_head,
     _wav_to_float32,
-    load_config,
+    app,
     ensure_vad_model,
-    lifespan,
-    SileroVAD,
-    _run_vad_sync,
     init_vad,
-    _is_hallucination,
+    lifespan,
+    load_config,
 )
 
 client = TestClient(app)

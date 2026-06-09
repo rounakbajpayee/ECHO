@@ -5,18 +5,17 @@ OpenAI-compatible /v1/audio/transcriptions endpoint on port 8001
 
 from __future__ import annotations
 
-import io
-import os
-import wave
-import hmac
-import logging
 import asyncio
+import hmac
+import io
 import json
+import logging
+import os
 import subprocess
-from pathlib import Path
+import wave
 from concurrent.futures import ThreadPoolExecutor
-from typing import Optional
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import httpx
 import numpy as np
@@ -92,7 +91,7 @@ def load_config() -> dict:
 
 
 CONFIG = load_config()
-_whisper_subproc: Optional[subprocess.Popen] = None
+_whisper_subproc: subprocess.Popen | None = None
 
 # ---------------------------------------------------------------------------
 # VAD Auto-Downloader
@@ -205,7 +204,7 @@ class SileroVAD:
         return speech_ms
 
 
-_vad: Optional[SileroVAD] = None
+_vad: SileroVAD | None = None
 _vad_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="vad")
 
 
@@ -270,7 +269,7 @@ async def lifespan(app: FastAPI):
             if os.name == "nt":
                 creationflags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 
-            _whisper_subproc = subprocess.Popen(
+            _whisper_subproc = subprocess.Popen(  # noqa: S603 - the command is constructed safely
                 cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
@@ -357,7 +356,7 @@ def _trim_wav_head(audio_bytes: bytes, trim_ms: int) -> bytes:
         return audio_bytes
 
 
-def _wav_to_float32(audio_bytes: bytes) -> Optional[np.ndarray]:
+def _wav_to_float32(audio_bytes: bytes) -> np.ndarray | None:
     try:
         with wave.open(io.BytesIO(audio_bytes)) as wf:
             n_channels = wf.getnchannels()
@@ -456,11 +455,11 @@ async def health():
 @app.post("/v1/audio/transcriptions")
 async def transcribe(
     request: Request,
-    file: UploadFile = File(...),
-    model: str = Form(default="whisper-1"),
-    language: str = Form(default="en"),
-    temperature: str = Form(default="0.0"),
-    prompt: str = Form(default=""),
+    file: UploadFile = File(...),  # noqa: B008 - standard FastAPI dependency injection
+    model: str = Form(default="whisper-1"),  # noqa: B008 - standard FastAPI dependency injection
+    language: str = Form(default="en"),  # noqa: B008 - standard FastAPI dependency injection
+    temperature: str = Form(default="0.0"),  # noqa: B008 - standard FastAPI dependency injection
+    prompt: str = Form(default=""),  # noqa: B008 - standard FastAPI dependency injection
 ):
     bearer_token = str(CONFIG.get("bearer_token", "") or "").strip()
     _check_auth(request, bearer_token)
@@ -500,10 +499,10 @@ async def transcribe(
             data=form_fields,
             files=files_payload,
         )
-    except httpx.TimeoutException:
-        raise HTTPException(status_code=504, detail="Whisper backend timeout")
-    except httpx.ConnectError:
-        raise HTTPException(status_code=502, detail="Whisper backend unreachable")
+    except httpx.TimeoutException as e:
+        raise HTTPException(status_code=504, detail="Whisper backend timeout") from e
+    except httpx.ConnectError as e:
+        raise HTTPException(status_code=502, detail="Whisper backend unreachable") from e
 
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=f"Backend error: {response.text[:200]}")
