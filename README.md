@@ -2,7 +2,7 @@
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
-[![Coverage](https://img.shields.io/badge/coverage-90%25-success.svg)](https://github.com)
+<!-- Coverage badge removed: dynamic coverage badge to be added when Codecov is set up -->
 
 
 Fast, private, hallucination-resistant speech transcription for your home lab — OpenAI-compatible API, runs entirely on local hardware.
