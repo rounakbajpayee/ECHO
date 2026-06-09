@@ -8,6 +8,7 @@
   "vad_min_speech_duration_ms": 200,
   "vad_chunk_ms": 96,
   "vad_model_path": "src/assets/silero_vad_v6.onnx",
+  "spawn_whisper_server": true,
   "whisper_server_path": "/Users/homelab/whisper.cpp/build/bin/whisper-server",
   "whisper_model_path": "/Users/homelab/whisper.cpp/models/ggml-large-v3-turbo.bin",
   "whisper_threads": 4,
