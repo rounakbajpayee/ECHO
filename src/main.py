@@ -24,16 +24,55 @@ import onnxruntime as ort
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse
 
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry import propagate
+
+# ---------------------------------------------------------------------------
+# Telemetry Setup
+# ---------------------------------------------------------------------------
+
+tracer_provider = TracerProvider()
+trace.set_tracer_provider(tracer_provider)
+
+otlp_endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT")
+if otlp_endpoint:
+    exporter = OTLPSpanExporter(endpoint=otlp_endpoint)
+else:
+    exporter = ConsoleSpanExporter()
+
+tracer_provider.add_span_processor(BatchSpanProcessor(exporter))
+
 # ---------------------------------------------------------------------------
 # Logging Setup
 # ---------------------------------------------------------------------------
 
+class OpenTelemetryFilter(logging.Filter):
+    def filter(self, record):
+        span = trace.get_current_span()
+        if span and span.is_recording():
+            span_context = span.get_span_context()
+            record.trace_id = trace.format_trace_id(span_context.trace_id)
+            record.span_id = trace.format_span_id(span_context.span_id)
+        else:
+            record.trace_id = ""
+            record.span_id = ""
+        return True
+
 logging.basicConfig(
     level=logging.INFO,
-    format="[echo-stt] %(asctime)s %(levelname)s %(message)s",
+    format="[echo-stt] %(asctime)s %(levelname)s trace_id=%(trace_id)s span_id=%(span_id)s %(message)s",
     datefmt="%H:%M:%S",
 )
+
+logger = logging.getLogger()
+for handler in logger.handlers:
+    handler.addFilter(OpenTelemetryFilter())
+
 log = logging.getLogger("echo-stt")
+log.addFilter(OpenTelemetryFilter())
 
 # ---------------------------------------------------------------------------
 # Config Loader
@@ -494,11 +533,16 @@ async def transcribe(
         form_fields["prompt"] = prompt
 
     backend_url = str(CONFIG.get("whisper_backend_url", "http://127.0.0.1:8003"))
+
+    headers = {}
+    propagate.inject(headers)
+
     try:
         response = await _client.post(
             f"{backend_url}/v1/audio/transcriptions",
             data=form_fields,
             files=files_payload,
+            headers=headers,
         )
     except httpx.TimeoutException:
         raise HTTPException(status_code=504, detail="Whisper backend timeout")
