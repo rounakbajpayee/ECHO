@@ -1,0 +1,2 @@
+[tool.pytest.ini_options]
+addopts = "--cov=src --cov-report=xml --cov-fail-under=70"
