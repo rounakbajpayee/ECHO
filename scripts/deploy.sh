@@ -24,9 +24,14 @@ PLIST_TARGET="/Users/homelab/Library/LaunchAgents/$PLIST_NAME"
 
 cd "$REPO_DIR"
 
-# 1. Capture the previous commit SHA for rollback
+# 1. Capture the previous commit SHA and plist for rollback
 PREV_COMMIT=$(git rev-parse HEAD)
 echo "Current commit SHA: $PREV_COMMIT"
+
+if [ -f "$PLIST_TARGET" ]; then
+    echo "Backing up current plist..."
+    cp "$PLIST_TARGET" "${PLIST_TARGET}.bak"
+fi
 
 # 2. Fetch and pull latest changes from main
 echo "Pulling latest code from origin/main..."
@@ -42,6 +47,12 @@ rollback() {
     echo "========================================="
     cd "$REPO_DIR"
     git reset --hard "$PREV_COMMIT"
+
+    if [ -f "${PLIST_TARGET}.bak" ]; then
+        echo "Restoring previous plist..."
+        cp "${PLIST_TARGET}.bak" "$PLIST_TARGET"
+        rm "${PLIST_TARGET}.bak"
+    fi
 
     # Re-run setup and restart on previous commit
     setup_env
