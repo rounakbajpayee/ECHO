@@ -1,6 +1,9 @@
+[tool.pytest.ini_options]
+addopts = "--cov=src --cov-report=xml --cov-fail-under=70"
+
 [tool.ruff]
 line-length = 127
-target-version = "py312"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "B", "S", "UP", "I"]
