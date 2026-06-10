@@ -19,7 +19,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install -r requirements.txt -r requirements-dev.txt
+        run: pip install -r requirements.lock -r requirements-dev.lock
 
       - name: Ruff format check
         run: ruff format --check src/ tests/
