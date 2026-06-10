@@ -1,4 +1,5 @@
 pytest>=7.3.0
 anyio>=4.0.0
 ruff>=0.1.0
+pytest-cov
 pip-tools

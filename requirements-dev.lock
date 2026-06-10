@@ -4,6 +4,8 @@ build==1.5.0
     # via pip-tools
 click==8.4.1
     # via pip-tools
+coverage==7.6.1
+    # via pytest-cov
 idna==3.18
     # via anyio
 iniconfig==2.3.0
@@ -24,6 +26,8 @@ pyproject-hooks==1.2.0
     #   build
     #   pip-tools
 pytest==9.0.3
+    # via -r requirements-dev.txt
+pytest-cov==5.0.0
     # via -r requirements-dev.txt
 ruff==0.15.16
     # via -r requirements-dev.txt
