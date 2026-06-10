@@ -51,8 +51,8 @@ cd ECHO
 
 # 2. Create virtual environment and install dependencies
 python -m venv .venv
-.venv/Scripts/pip install -r requirements.txt     # Windows
-# source .venv/bin/activate && pip install -r requirements.txt  # macOS/Linux
+.venv/Scripts/pip install -r requirements.lock     # Windows
+# source .venv/bin/activate && pip install -r requirements.lock  # macOS/Linux
 
 # 3. Copy config and fill in your paths
 cp config.json.example src/config.json
@@ -79,6 +79,18 @@ ECHO uses a three-layer config system (each layer overrides the previous):
 | 3 (highest) | Environment variables | `UPPER_CASE` of key name |
 
 See [`config.json.example`](config.json.example) for all available options.
+
+---
+
+## Dependencies
+
+Dependency tracking uses lower bound versions in `requirements.txt` and `requirements-dev.txt`. We use `pip-tools` to generate fully pinned lockfiles for CI and production to ensure reproducibility.
+
+To regenerate lockfiles after adding or updating dependencies:
+```bash
+pip-compile requirements.txt -o requirements.lock --no-header
+pip-compile requirements-dev.txt -o requirements-dev.lock --no-header
+```
 
 ---
 
