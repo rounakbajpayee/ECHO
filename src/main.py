@@ -317,8 +317,8 @@ async def lifespan(app: FastAPI):
 
             _whisper_subproc = subprocess.Popen(  # noqa: S603 - cmd is constructed from config values, not user input
                 cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
                 creationflags=creationflags,
             )
             log.info("whisper-server spawned successfully with PID %d", _whisper_subproc.pid)
