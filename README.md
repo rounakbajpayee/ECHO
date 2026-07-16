@@ -2,7 +2,7 @@
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
-<!-- Coverage badge removed: dynamic coverage badge to be added when Codecov is set up -->
+[![Status](https://img.shields.io/badge/status-active-success.svg)](#)
 
 
 Fast, private, hallucination-resistant speech transcription for your home lab — OpenAI-compatible API, runs entirely on local hardware.
@@ -133,9 +133,13 @@ pytest tests/ -v
 
 ## macOS Deployment (LaunchAgent)
 
+> [!NOTE]
+> The absolute paths inside `com.citadel.echo.plist` must be edited to replace `/Users/homelab/` with your actual macOS home directory.
+
 ```bash
 # Install unified ECHO service (replaces com.citadel.voice + com.citadel.whisper)
 mkdir -p ~/Library/LaunchAgents
+# Ensure you edit the paths inside com.citadel.echo.plist first
 cp com.citadel.echo.plist ~/Library/LaunchAgents/
 launchctl load ~/Library/LaunchAgents/com.citadel.echo.plist
 
@@ -143,7 +147,7 @@ launchctl load ~/Library/LaunchAgents/com.citadel.echo.plist
 launchctl list | grep echo
 
 # View logs
-tail -f /Users/homelab/echo/logs/echo.log
+tail -f ~/echo/logs/echo.log
 ```
 
 > **Note:** ECHO uses a user LaunchAgent (`~/Library/LaunchAgents/`) — no `sudo` required. `com.citadel.echo.plist` supersedes the legacy `com.citadel.voice.plist` and `com.citadel.whisper.plist` (those were LaunchDaemons). Unload and remove those with `sudo` before loading the new one.
