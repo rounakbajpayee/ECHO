@@ -1,4 +1,4 @@
-# test-host.ps1 — Post-deployment smoke test against a live ECHO instance
+# test-host.ps1 - Post-deployment smoke test against a live ECHO instance
 # Run this AFTER deploying to verify the service is healthy and responding correctly.
 # Usage: .\scripts\test-host.ps1 [-BaseUrl http://hostname:8001] [-Token your-bearer-token]
 
@@ -95,7 +95,7 @@ try {
 # -----------------------------------------------------------
 # Test 2: No-auth request is rejected when token is set
 # -----------------------------------------------------------
-Write-Host "`n[2] Auth enforcement (skipped — no token provided)" -ForegroundColor Yellow
+Write-Host "`n[2] Auth enforcement (skipped - no token provided)" -ForegroundColor Yellow
 if ($Token) {
     try {
         $resp = Invoke-WebRequest -Uri "$BaseUrl/v1/audio/transcriptions" -Method Post `

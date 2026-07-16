@@ -28,6 +28,7 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry import propagate
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 # ---------------------------------------------------------------------------
 # Telemetry Setup
@@ -340,12 +341,18 @@ async def lifespan(app: FastAPI):
             _whisper_subproc.wait()
             log.info("whisper-server killed.")
 
+    try:
+        tracer_provider.shutdown()
+    except Exception as exc:
+        log.warning("Failed to shutdown tracer provider: %s", exc)
+
 
 # ---------------------------------------------------------------------------
 # App Instance
 # ---------------------------------------------------------------------------
 
 app = FastAPI(title="ECHO Voice Service", version="4.0.0", lifespan=lifespan)
+FastAPIInstrumentor.instrument_app(app)
 _client = httpx.AsyncClient(timeout=float(CONFIG.get("backend_timeout", 30.0)))
 
 # ---------------------------------------------------------------------------
