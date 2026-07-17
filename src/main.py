@@ -118,7 +118,12 @@ def load_config() -> dict:
                 else:
                     config[key] = env_val
             except Exception as exc:
-                log.warning("Failed to convert env var %s to %s: %s", key.upper(), expected_type, exc)
+                log.warning(
+                    "Failed to convert env var %s to %s: %s",
+                    key.upper(),
+                    expected_type,
+                    exc,
+                )
 
     # Handle legacy environment variable overrides
     legacy_token = os.environ.get("VOICE_BEARER_TOKEN")
@@ -155,7 +160,10 @@ def ensure_vad_model(model_path: str):
             path.write_bytes(r.content)
         log.info("Silero VAD model downloaded successfully to %s", model_path)
     except Exception as exc:
-        log.error("Failed to download Silero VAD model: %s. VAD will likely fail to load.", exc)
+        log.error(
+            "Failed to download Silero VAD model: %s. VAD will likely fail to load.",
+            exc,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -214,7 +222,9 @@ class SileroVAD:
         speech_ms = 0.0
         pad = (-len(audio_float32)) % chunk_samples
         if pad:
-            audio_float32 = np.concatenate([audio_float32, np.zeros(pad, dtype=np.float32)])
+            audio_float32 = np.concatenate(
+                [audio_float32, np.zeros(pad, dtype=np.float32)]
+            )
 
         for i in range(0, len(audio_float32), chunk_samples):
             chunk = audio_float32[i : i + chunk_samples].reshape(1, -1)
@@ -253,7 +263,9 @@ def init_vad(config: dict) -> None:
     global _vad
     if bool(config.get("vad_enabled", True)):
         try:
-            model_path = str(config.get("vad_model_path", "src/assets/silero_vad_v6.onnx"))
+            model_path = str(
+                config.get("vad_model_path", "src/assets/silero_vad_v6.onnx")
+            )
             # Resolve to absolute path based on project root if relative
             path_obj = Path(model_path)
             if not path_obj.is_absolute():
@@ -288,10 +300,16 @@ async def lifespan(app: FastAPI):
     extra_args = list(CONFIG.get("whisper_args", []))
 
     if spawn_server and server_path and model_path:
-        log.info("Spawning whisper-server: %s --model %s --host 127.0.0.1 --port %d", server_path, model_path, port)
+        log.info(
+            "Spawning whisper-server: %s --model %s --host 127.0.0.1 --port %d",
+            server_path,
+            model_path,
+            port,
+        )
         if not Path(server_path).exists():
             log.warning(
-                "whisper-server binary not found at: %s. Assuming it is in system PATH or skipping launch.", server_path
+                "whisper-server binary not found at: %s. Assuming it is in system PATH or skipping launch.",
+                server_path,
             )
 
         cmd = [
@@ -321,7 +339,9 @@ async def lifespan(app: FastAPI):
                 stderr=subprocess.DEVNULL,
                 creationflags=creationflags,
             )
-            log.info("whisper-server spawned successfully with PID %d", _whisper_subproc.pid)
+            log.info(
+                "whisper-server spawned successfully with PID %d", _whisper_subproc.pid
+            )
             await asyncio.sleep(1.0)
         except Exception as exc:
             log.error("Failed to spawn whisper-server: %s", exc)
@@ -364,7 +384,9 @@ def _check_auth(request: Request, bearer_token: str) -> None:
     if not bearer_token:
         return
     auth = request.headers.get("Authorization", "")
-    if not auth.startswith("Bearer ") or not hmac.compare_digest(auth[7:], bearer_token):
+    if not auth.startswith("Bearer ") or not hmac.compare_digest(
+        auth[7:], bearer_token
+    ):
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 
@@ -401,7 +423,12 @@ def _trim_wav_head(audio_bytes: bytes, trim_ms: int) -> bytes:
             wf_out.writeframes(remaining)
 
         result = out.getvalue()
-        log.info("Head trim: removed %dms, %d→%d bytes", trim_ms, len(audio_bytes), len(result))
+        log.info(
+            "Head trim: removed %dms, %d→%d bytes",
+            trim_ms,
+            len(audio_bytes),
+            len(result),
+        )
         return result
     except Exception as exc:
         log.warning("Head trim failed (%s), using original", exc)
@@ -443,7 +470,9 @@ def _wav_to_float32(audio_bytes: bytes) -> np.ndarray | None:
         return None
 
 
-def _run_vad_sync(audio_bytes: bytes, chunk_ms: int, threshold: float, min_duration: int) -> tuple[bool, float]:
+def _run_vad_sync(
+    audio_bytes: bytes, chunk_ms: int, threshold: float, min_duration: int
+) -> tuple[bool, float]:
     audio = _wav_to_float32(audio_bytes)
     if audio is None:
         return True, -1.0
@@ -507,10 +536,18 @@ async def health():
 async def transcribe(
     request: Request,
     file: UploadFile = File(...),  # noqa: B008 - standard FastAPI dependency injection
-    model: str = Form(default="whisper-1"),  # noqa: B008 - standard FastAPI dependency injection
-    language: str = Form(default="en"),  # noqa: B008 - standard FastAPI dependency injection
-    temperature: str = Form(default="0.0"),  # noqa: B008 - standard FastAPI dependency injection
-    prompt: str = Form(default=""),  # noqa: B008 - standard FastAPI dependency injection
+    model: str = Form(
+        default="whisper-1"
+    ),  # noqa: B008 - standard FastAPI dependency injection
+    language: str = Form(
+        default="en"
+    ),  # noqa: B008 - standard FastAPI dependency injection
+    temperature: str = Form(
+        default="0.0"
+    ),  # noqa: B008 - standard FastAPI dependency injection
+    prompt: str = Form(
+        default=""
+    ),  # noqa: B008 - standard FastAPI dependency injection
 ):
     bearer_token = str(CONFIG.get("bearer_token", "") or "").strip()
     _check_auth(request, bearer_token)
@@ -533,7 +570,11 @@ async def transcribe(
             _vad_executor, _run_vad_sync, audio_bytes, chunk_ms, threshold, min_duration
         )
         if not speech_detected:
-            log.info("VAD: no speech (%.0fms < %dms) — returning empty", speech_ms, min_duration)
+            log.info(
+                "VAD: no speech (%.0fms < %dms) — returning empty",
+                speech_ms,
+                min_duration,
+            )
             return JSONResponse({"text": ""})
         log.info("VAD: %.0fms speech detected — forwarding", speech_ms)
 
@@ -558,10 +599,15 @@ async def transcribe(
     except httpx.TimeoutException as e:
         raise HTTPException(status_code=504, detail="Whisper backend timeout") from e
     except httpx.ConnectError as e:
-        raise HTTPException(status_code=502, detail="Whisper backend unreachable") from e
+        raise HTTPException(
+            status_code=502, detail="Whisper backend unreachable"
+        ) from e
 
     if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail=f"Backend error: {response.text[:200]}")
+        raise HTTPException(
+            status_code=response.status_code,
+            detail=f"Backend error: {response.text[:200]}",
+        )
 
     result = response.json()
     text = result.get("text", "").strip()

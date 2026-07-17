@@ -25,13 +25,20 @@ from main import (
 client = TestClient(app)
 
 
-def create_dummy_wav(duration_sec: float = 1.0, sample_rate: int = 16000, sampwidth: int = 2, n_channels: int = 1) -> bytes:
+def create_dummy_wav(
+    duration_sec: float = 1.0,
+    sample_rate: int = 16000,
+    sampwidth: int = 2,
+    n_channels: int = 1,
+) -> bytes:
     out = io.BytesIO()
     with wave.open(out, "wb") as wf:
         wf.setnchannels(n_channels)
         wf.setsampwidth(sampwidth)
         wf.setframerate(sample_rate)
-        t = np.linspace(0, duration_sec, int(sample_rate * duration_sec), endpoint=False)
+        t = np.linspace(
+            0, duration_sec, int(sample_rate * duration_sec), endpoint=False
+        )
         if sampwidth == 2:
             data = (np.sin(2 * np.pi * 440 * t) * 16000).astype(np.int16)
         else:
@@ -129,11 +136,15 @@ def test_transcribe_exceptions():
 
     with patch("main._client.post") as mock_post:
         mock_post.side_effect = httpx.TimeoutException("timeout")
-        resp = client.post("/v1/audio/transcriptions", files={"file": ("a.wav", audio, "audio/wav")})
+        resp = client.post(
+            "/v1/audio/transcriptions", files={"file": ("a.wav", audio, "audio/wav")}
+        )
         assert resp.status_code == 504
 
         mock_post.side_effect = httpx.ConnectError("connect")
-        resp2 = client.post("/v1/audio/transcriptions", files={"file": ("a.wav", audio, "audio/wav")})
+        resp2 = client.post(
+            "/v1/audio/transcriptions", files={"file": ("a.wav", audio, "audio/wav")}
+        )
         assert resp2.status_code == 502
 
         mock_post.side_effect = None
@@ -141,16 +152,23 @@ def test_transcribe_exceptions():
         mock_resp.status_code = 500
         mock_resp.text = "Internal Server Error"
         mock_post.return_value = mock_resp
-        resp3 = client.post("/v1/audio/transcriptions", files={"file": ("a.wav", audio, "audio/wav")})
+        resp3 = client.post(
+            "/v1/audio/transcriptions", files={"file": ("a.wav", audio, "audio/wav")}
+        )
         assert resp3.status_code == 500
 
-        resp4 = client.post("/v1/audio/transcriptions", files={"file": ("a.wav", b"", "audio/wav")})
+        resp4 = client.post(
+            "/v1/audio/transcriptions", files={"file": ("a.wav", b"", "audio/wav")}
+        )
         assert resp4.status_code == 400
 
 
 @pytest.mark.anyio
 async def test_lifespan():
-    with patch("subprocess.Popen") as mock_popen, patch("main.Path.exists", return_value=True):
+    with (
+        patch("subprocess.Popen") as mock_popen,
+        patch("main.Path.exists", return_value=True),
+    ):
         mock_proc = MagicMock()
         mock_popen.return_value = mock_proc
         async with lifespan(app):
@@ -248,16 +266,22 @@ def test_transcribe_vad_path():
         init_vad(main.CONFIG)
         audio = create_dummy_wav(0.5)
 
-        resp = client.post("/v1/audio/transcriptions", files={"file": ("a.wav", audio, "audio/wav")})
+        resp = client.post(
+            "/v1/audio/transcriptions", files={"file": ("a.wav", audio, "audio/wav")}
+        )
         assert resp.status_code == 200
         assert resp.json()["text"] == "hello"
 
         mock_response.json.return_value = {"text": "Thanks for watching."}
-        resp = client.post("/v1/audio/transcriptions", files={"file": ("a.wav", audio, "audio/wav")})
+        resp = client.post(
+            "/v1/audio/transcriptions", files={"file": ("a.wav", audio, "audio/wav")}
+        )
         assert resp.json()["text"] == ""
 
         mock_prob_tensor.item.return_value = 0.1
-        resp = client.post("/v1/audio/transcriptions", files={"file": ("a.wav", audio, "audio/wav")})
+        resp = client.post(
+            "/v1/audio/transcriptions", files={"file": ("a.wav", audio, "audio/wav")}
+        )
         assert resp.json()["text"] == ""
 
 
