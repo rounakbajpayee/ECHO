@@ -222,9 +222,7 @@ class SileroVAD:
         speech_ms = 0.0
         pad = (-len(audio_float32)) % chunk_samples
         if pad:
-            audio_float32 = np.concatenate(
-                [audio_float32, np.zeros(pad, dtype=np.float32)]
-            )
+            audio_float32 = np.concatenate([audio_float32, np.zeros(pad, dtype=np.float32)])
 
         for i in range(0, len(audio_float32), chunk_samples):
             chunk = audio_float32[i : i + chunk_samples].reshape(1, -1)
@@ -263,9 +261,7 @@ def init_vad(config: dict) -> None:
     global _vad
     if bool(config.get("vad_enabled", True)):
         try:
-            model_path = str(
-                config.get("vad_model_path", "src/assets/silero_vad_v6.onnx")
-            )
+            model_path = str(config.get("vad_model_path", "src/assets/silero_vad_v6.onnx"))
             # Resolve to absolute path based on project root if relative
             path_obj = Path(model_path)
             if not path_obj.is_absolute():
@@ -339,9 +335,7 @@ async def lifespan(app: FastAPI):
                 stderr=subprocess.DEVNULL,
                 creationflags=creationflags,
             )
-            log.info(
-                "whisper-server spawned successfully with PID %d", _whisper_subproc.pid
-            )
+            log.info("whisper-server spawned successfully with PID %d", _whisper_subproc.pid)
             await asyncio.sleep(1.0)
         except Exception as exc:
             log.error("Failed to spawn whisper-server: %s", exc)
@@ -384,9 +378,7 @@ def _check_auth(request: Request, bearer_token: str) -> None:
     if not bearer_token:
         return
     auth = request.headers.get("Authorization", "")
-    if not auth.startswith("Bearer ") or not hmac.compare_digest(
-        auth[7:], bearer_token
-    ):
+    if not auth.startswith("Bearer ") or not hmac.compare_digest(auth[7:], bearer_token):
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 
@@ -470,9 +462,7 @@ def _wav_to_float32(audio_bytes: bytes) -> np.ndarray | None:
         return None
 
 
-def _run_vad_sync(
-    audio_bytes: bytes, chunk_ms: int, threshold: float, min_duration: int
-) -> tuple[bool, float]:
+def _run_vad_sync(audio_bytes: bytes, chunk_ms: int, threshold: float, min_duration: int) -> tuple[bool, float]:
     audio = _wav_to_float32(audio_bytes)
     if audio is None:
         return True, -1.0
@@ -536,18 +526,10 @@ async def health():
 async def transcribe(
     request: Request,
     file: UploadFile = File(...),  # noqa: B008 - standard FastAPI dependency injection
-    model: str = Form(
-        default="whisper-1"
-    ),  # noqa: B008 - standard FastAPI dependency injection
-    language: str = Form(
-        default="en"
-    ),  # noqa: B008 - standard FastAPI dependency injection
-    temperature: str = Form(
-        default="0.0"
-    ),  # noqa: B008 - standard FastAPI dependency injection
-    prompt: str = Form(
-        default=""
-    ),  # noqa: B008 - standard FastAPI dependency injection
+    model: str = Form(default="whisper-1"),  # noqa: B008 - standard FastAPI dependency injection
+    language: str = Form(default="en"),  # noqa: B008 - standard FastAPI dependency injection
+    temperature: str = Form(default="0.0"),  # noqa: B008 - standard FastAPI dependency injection
+    prompt: str = Form(default=""),  # noqa: B008 - standard FastAPI dependency injection
 ):
     bearer_token = str(CONFIG.get("bearer_token", "") or "").strip()
     _check_auth(request, bearer_token)
@@ -599,9 +581,7 @@ async def transcribe(
     except httpx.TimeoutException as e:
         raise HTTPException(status_code=504, detail="Whisper backend timeout") from e
     except httpx.ConnectError as e:
-        raise HTTPException(
-            status_code=502, detail="Whisper backend unreachable"
-        ) from e
+        raise HTTPException(status_code=502, detail="Whisper backend unreachable") from e
 
     if response.status_code != 200:
         raise HTTPException(
